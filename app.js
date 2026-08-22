@@ -106,33 +106,24 @@ function buildMenu() {
   allSec.className = "cat-sec on";
   allSec.id = "sec-ALL";
 
-  let allHtml = '<div class="all-list">';
+  let allHtml = "";
   CAT_ORDER.forEach((cat) => {
     const items = FL.filter((f) => f.c === cat);
+    const meta = CAT_META[cat] || { title: "", desc: "" };
     allHtml += `
-      <div class="all-group-hdr">
-        <div class="all-group-dot" style="background:${CC[cat]}"></div>
-        <div class="all-group-name">${esc(catTitle(cat))}</div>
-        <div class="all-group-ct">${items.length}</div>
+      <div class="cat-hdr">
+        <div>
+          <div class="cat-line" style="background:${CC[cat]}"></div>
+          <div class="cat-title">${esc(meta.title)}</div>
+          <div class="cat-desc">${esc(meta.desc)}</div>
+        </div>
+        <div class="cat-num">${items.length}</div>
+      </div>
+      <div class="grid">
+        ${items.map((item, idx) => cardHtml(item, FL.indexOf(item), idx)).join("")}
       </div>
     `;
-    items.forEach((item) => {
-      const gi = FL.indexOf(item);
-      allHtml += `
-        <div class="all-row" onclick="openEnc(${gi})" style="--rc:${CC[cat]}">
-          <div class="all-thumb"${item.ph ? ` style="background-image:url('${item.ph}')"` : ""}></div>
-          <div class="all-info">
-            <div class="all-name">${esc(item.n)}</div>
-            <div class="all-origin">${esc(item.p || item.o)}</div>
-          </div>
-          <div class="all-right">
-            <div class="all-price">${esc(priceTxt(item.pr))}</div>
-          </div>
-        </div>
-      `;
-    });
   });
-  allHtml += "</div>";
   allSec.innerHTML = allHtml;
   root.appendChild(allSec);
 
