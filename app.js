@@ -98,28 +98,7 @@ function cardHtml(item, gi, idxInCat) {
   `;
 }
 
-function renderFlavors() {
-  const box = document.getElementById("flavor-list");
-  if (!box) return;
-  const jarsId = "6a20eb2e242634dae5bd29bf";
-  const items = FL.filter((f) => f.c === jarsId);
-  box.innerHTML = items.map((item) => {
-    const gi = FL.indexOf(item);
-    return `
-      <div class="all-row" onclick="openEnc(${gi})" style="--rc:${CC[jarsId]}">
-        <div class="all-num">${String(gi + 1).padStart(2, "0")}</div>
-        <div class="all-info">
-          <div class="all-name">${esc(item.n)}</div>
-          <div class="all-origin">${esc(item.p || item.o)}</div>
-        </div>
-        <div class="all-right">
-          <div class="all-price">${esc(priceTxt(item.pr))}</div>
-          <div class="all-arr">‹</div>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
+function buildMenu() {
   const root = document.getElementById("menu-root");
   root.innerHTML = "";
 
@@ -141,14 +120,13 @@ function renderFlavors() {
       const gi = FL.indexOf(item);
       allHtml += `
         <div class="all-row" onclick="openEnc(${gi})" style="--rc:${CC[cat]}">
-          <div class="all-num">${String(gi + 1).padStart(2, "0")}</div>
+          <div class="all-thumb"${item.ph ? ` style="background-image:url('${item.ph}')"` : ""}></div>
           <div class="all-info">
             <div class="all-name">${esc(item.n)}</div>
             <div class="all-origin">${esc(item.p || item.o)}</div>
           </div>
           <div class="all-right">
             <div class="all-price">${esc(priceTxt(item.pr))}</div>
-            <div class="all-arr">‹</div>
           </div>
         </div>
       `;
@@ -545,5 +523,4 @@ document.addEventListener("keydown", (e) => {
 
 applyBrand();
 renderTabs();
-renderFlavors();
 buildMenu();
