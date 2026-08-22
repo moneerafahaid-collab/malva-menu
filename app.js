@@ -7,6 +7,70 @@ let swipeStartX = 0;
 let swipeStartY = 0;
 let swipeDir = null;
 let isOpen = false;
+let lang = localStorage.getItem("malva-lang") === "en" ? "en" : "ar";
+
+function t(key) {
+  return (I18N[lang] && I18N[lang][key]) || I18N.ar[key] || key;
+}
+
+function loc(obj, field) {
+  if (!obj) return "";
+  if (lang === "en" && obj[field + "En"]) return obj[field + "En"];
+  return obj[field] || "";
+}
+
+function tagTxt(v) {
+  return lang === "en" ? (TAG_EN[v] || v) : v;
+}
+
+function calTxt(item) {
+  if (!item.cal) return "";
+  return `${item.cal} ${t("cal")}`;
+}
+
+function applyStaticI18n() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+    el.innerHTML = t(el.getAttribute("data-i18n-html"));
+  });
+  const note = document.getElementById("enc-note");
+  if (note) note.placeholder = t("notesPh");
+  const table = document.getElementById("table-no");
+  if (table) table.placeholder = t("tablePh");
+}
+
+function setLang(next) {
+  lang = next === "en" ? "en" : "ar";
+  localStorage.setItem("malva-lang", lang);
+  document.documentElement.lang = lang === "en" ? "en" : "ar";
+  document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
+  document.querySelectorAll("[data-lang-btn]").forEach((el) => {
+    el.classList.toggle("on", el.getAttribute("data-lang-btn") === lang);
+  });
+  applyStaticI18n();
+  applyBrand();
+  const active = document.querySelector(".tab.on");
+  const cat = active ? active.dataset.c : "ALL";
+  renderTabs();
+  const keep = document.querySelector(`.tab[data-c="${cat}"]`);
+  if (keep) keep.classList.add("on");
+  document.querySelectorAll(".tab").forEach((tb) => {
+    if (tb !== keep) tb.classList.remove("on");
+  });
+  buildMenu();
+  document.querySelectorAll(".cat-sec").forEach((s) => s.classList.remove("on"));
+  const sec = document.getElementById("sec-" + cat);
+  if (sec) sec.classList.add("on");
+  if (isOpen) renderEnc(curIdx);
+  refreshCartBar();
+  if (document.getElementById("cart").classList.contains("open")) renderCartList();
+}
+
+function toggleLang() {
+  setLang(lang === "ar" ? "en" : "ar");
+}
 
 function esc(str) {
   return String(str ?? "")
@@ -18,7 +82,7 @@ function esc(str) {
 
 function priceTxt(v) {
   if (v === null || v === undefined || v === "") return "";
-  return `${v} ${CURRENCY}`;
+  return `${v} ${t("currency")}`;
 }
 
 function gradBg(cat, i) {
@@ -31,28 +95,38 @@ function countByCat(cat) {
 }
 
 function catTitle(id) {
-  return (CAT_META[id] && CAT_META[id].title) || "";
+  const meta = CAT_META[id];
+  if (!meta) return "";
+  return loc(meta, "title");
+}
+
+function catDesc(id) {
+  const meta = CAT_META[id];
+  if (!meta) return "";
+  return loc(meta, "desc");
 }
 
 function applyBrand() {
-  document.title = BRAND.name;
-  document.getElementById("brand-name").textContent = BRAND.name;
-  document.getElementById("brand-sub").textContent = BRAND.sub;
-  document.getElementById("nav-count").textContent = `${FL.length} صنف`;
-  document.getElementById("mhEyA").textContent = BRAND.heroEy;
-  document.getElementById("mhEyB").textContent = BRAND.heroEyAlt;
-  document.getElementById("mh-title").innerHTML = BRAND.heroTitleHtml;
+  document.title = loc(BRAND, "name");
+  document.getElementById("brand-name").textContent = loc(BRAND, "name");
+  document.getElementById("brand-sub").textContent = loc(BRAND, "sub");
+  document.getElementById("nav-count").textContent = `${FL.length} ${t("items")}`;
+  document.getElementById("mhEyA").textContent = loc(BRAND, "heroEy");
+  document.getElementById("mhEyB").textContent = loc(BRAND, "heroEyAlt");
+  document.getElementById("mh-title").innerHTML = loc(BRAND, "heroTitleHtml");
   document.getElementById("mhWordDry").textContent = BRAND.heroWordDry;
   document.getElementById("mhWordSauced").textContent = BRAND.heroWordSauced;
-  document.getElementById("mhCta").textContent = BRAND.heroCta;
+  document.getElementById("mhCta").textContent = loc(BRAND, "heroCta");
   document.getElementById("mhCta").onclick = () => {
     document.getElementById("tabs").scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  const foot = document.querySelector(".brand-foot");
+  if (foot) foot.innerHTML = loc(BRAND, "footHtml");
 }
 
 function renderTabs() {
   const inner = document.getElementById("tabs-inner");
-  const tabs = [{ c: "ALL", label: "الكل", count: FL.length, color: "rgba(245,240,232,0.4)" }]
+  const tabs = [{ c: "ALL", label: t("all"), count: FL.length, color: "rgba(245,240,232,0.4)" }]
     .concat(CAT_ORDER.map((c) => ({
       c,
       label: catTitle(c),
@@ -68,15 +142,15 @@ function renderTabs() {
 }
 
 function badgeHtml(item) {
-  if (item.b === "الأفضل مبيعاً") return `<div class="card-badge b-best">الأفضل مبيعاً</div>`;
-  if (item.b === "منتج جديد") return `<div class="card-badge b-sig">جديد</div>`;
-  if (item.b) return `<div class="card-badge b-best">${esc(item.b)}</div>`;
+  if (item.b === "الأفضل مبيعاً") return `<div class="card-badge b-best">${esc(t("best"))}</div>`;
+  if (item.b === "منتج جديد") return `<div class="card-badge b-sig">${esc(t("neu"))}</div>`;
+  if (item.b) return `<div class="card-badge b-best">${esc(lang === "en" ? t("best") : item.b)}</div>`;
   return "";
 }
 
 function cardHtml(item, gi, idxInCat) {
   const cat = item.c;
-  const len = item.n.length;
+  const len = loc(item, "n").length;
   const nameSize = len > 18 ? " xs" : len > 12 ? " sm" : "";
   const bgStyle = item.ph
     ? `linear-gradient(0deg, rgba(7,7,7,0.92) 0%, rgba(7,7,7,0.3) 40%, rgba(7,7,7,0) 100%), url('${item.ph}') center/cover`
@@ -91,8 +165,8 @@ function cardHtml(item, gi, idxInCat) {
       <div class="card-idx">${String(gi + 1).padStart(2, "0")}</div>
       <div class="card-dot" style="background:${CC[cat]}"></div>
       <div class="card-body">
-        <div class="card-region">${esc(item.o || priceTxt(item.pr))}</div>
-        <div class="card-name${nameSize}">${esc(item.n)}</div>
+        <div class="card-region">${esc(calTxt(item) || priceTxt(item.pr))}</div>
+        <div class="card-name${nameSize}">${esc(loc(item, "n"))}</div>
       </div>
     </div>
   `;
@@ -114,8 +188,8 @@ function buildMenu() {
       <div class="cat-hdr">
         <div>
           <div class="cat-line" style="background:${CC[cat]}"></div>
-          <div class="cat-title">${esc(meta.title)}</div>
-          <div class="cat-desc">${esc(meta.desc)}</div>
+          <div class="cat-title">${esc(loc(meta, "title"))}</div>
+          <div class="cat-desc">${esc(loc(meta, "desc"))}</div>
         </div>
         <div class="cat-num">${items.length}</div>
       </div>
@@ -137,8 +211,8 @@ function buildMenu() {
       <div class="cat-hdr">
         <div>
           <div class="cat-line" style="background:${CC[cat]}"></div>
-          <div class="cat-title">${esc(meta.title)}</div>
-          <div class="cat-desc">${esc(meta.desc)}</div>
+          <div class="cat-title">${esc(loc(meta, "title"))}</div>
+          <div class="cat-desc">${esc(loc(meta, "desc"))}</div>
         </div>
         <div class="cat-num">${items.length}</div>
       </div>
@@ -201,20 +275,20 @@ function renderEnc(idx) {
   ctag.style.background = CC[cat] || "var(--gold)";
   ctag.style.color = "#1a1a1a";
 
-  document.getElementById("enc-heat").innerHTML = f.o
-    ? `<div class="enc-cal">${esc(f.o)}</div>`
+  document.getElementById("enc-heat").innerHTML = f.cal
+    ? `<div class="enc-cal">${esc(calTxt(f))}</div>`
     : "";
-  document.getElementById("enc-origin").textContent = f.b || "";
-  document.getElementById("enc-title").textContent = f.n;
-  document.getElementById("enc-prof").textContent = f.p || "";
+  document.getElementById("enc-origin").textContent = f.b === "الأفضل مبيعاً" ? t("best") : f.b === "منتج جديد" ? t("neu") : (f.b || "");
+  document.getElementById("enc-title").textContent = loc(f, "n");
+  document.getElementById("enc-prof").textContent = loc(f, "p");
   document.getElementById("enc-story").textContent = "";
 
   const tags = [];
-  (f.t || []).forEach((t) => tags.push(t));
+  (f.t || []).forEach((x) => tags.push(tagTxt(x)));
   (f.addons || []).forEach((a) => {
-    tags.push(a.pr ? `${a.n} +${a.pr} ${CURRENCY}` : a.n);
+    tags.push(a.pr ? `${loc(a, "n")} +${a.pr} ${t("currency")}` : loc(a, "n"));
   });
-  document.getElementById("enc-tags").innerHTML = tags.map((t) => `<div class="e-tag">${esc(t)}</div>`).join("");
+  document.getElementById("enc-tags").innerHTML = tags.map((x) => `<div class="e-tag">${esc(x)}</div>`).join("");
   document.getElementById("enc-price").textContent = priceTxt(f.pr);
   document.getElementById("enc-price").style.color = "var(--bone)";
 
@@ -227,7 +301,7 @@ function renderEnc(idx) {
     addonsBox.previousElementSibling.style.display = "";
     addonsBox.innerHTML = addons.map((a, i) => `
       <label class="addon-row">
-        <span>${esc(a.n)}</span>
+        <span>${esc(loc(a, "n"))}</span>
         <span>
           +${esc(priceTxt(a.pr))}
           <input type="checkbox" data-addon="${i}">
@@ -254,7 +328,7 @@ function selectedAddons() {
   const addons = f.addons || [];
   return [...document.querySelectorAll("#enc-addons input:checked")].map((el) => {
     const a = addons[Number(el.dataset.addon)];
-    return a ? { n: a.n, pr: Number(a.pr) || 0 } : null;
+    return a ? { n: loc(a, "n"), nAr: a.n, nEn: a.nEn, pr: Number(a.pr) || 0 } : null;
   }).filter(Boolean);
 }
 
@@ -286,7 +360,7 @@ function refreshCartBar() {
     return;
   }
   bar.classList.add("on");
-  document.getElementById("cart-bar-count").textContent = n === 1 ? "صنف واحد" : `${n} أصناف`;
+  document.getElementById("cart-bar-count").textContent = n === 1 ? t("itemOne") : `${n} ${t("itemsMany")}`;
   document.getElementById("cart-bar-total").textContent = priceTxt(cartTotal());
 }
 
@@ -299,7 +373,7 @@ function addCurrentToCart() {
   CART.push({
     id: Date.now(),
     idx: curIdx,
-    n: f.n,
+    n: loc(f, "n"),
     pr: Number(f.pr) || 0,
     qty,
     note,
@@ -312,17 +386,20 @@ function addCurrentToCart() {
 function renderCartList() {
   const box = document.getElementById("cart-list");
   if (!CART.length) {
-    box.innerHTML = `<div class="ask-sub" style="padding:24px 0;text-align:center">السلة فاضية.</div>`;
+    box.innerHTML = `<div class="ask-sub" style="padding:24px 0;text-align:center">${esc(t("emptyCart"))}</div>`;
     document.getElementById("cart-sum").textContent = priceTxt(0);
     return;
   }
-  box.innerHTML = CART.map((it) => `
+  box.innerHTML = CART.map((it) => {
+    const src = FL[it.idx] || {};
+    const name = loc(src, "n") || it.n;
+    return `
     <div class="cart-item">
       <div class="cart-item-top">
         <div>
-          <div class="cart-item-name">${esc(it.n)}</div>
-          ${it.note ? `<div class="cart-item-note">ملاحظة: ${esc(it.note)}</div>` : ""}
-          ${(it.addons || []).map((a) => `<div class="cart-item-addon">+ ${esc(a.n)}</div>`).join("")}
+          <div class="cart-item-name">${esc(name)}</div>
+          ${it.note ? `<div class="cart-item-note">${esc(t("notePrefix"))} ${esc(it.note)}</div>` : ""}
+          ${(it.addons || []).map((a) => `<div class="cart-item-addon">+ ${esc(loc(a, "n") || a.n)}</div>`).join("")}
         </div>
         <div class="all-price">${esc(priceTxt(linePrice({ pr: it.pr }, it.qty, it.addons)))}</div>
       </div>
@@ -332,13 +409,16 @@ function renderCartList() {
           <div class="qty-n">${it.qty}</div>
           <button class="qty-btn" type="button" onclick="chgCartQty(${it.id},1)">+</button>
         </div>
-        <button class="cart-del" type="button" onclick="removeCartItem(${it.id})">حذف</button>
+        <button class="cart-del" type="button" onclick="removeCartItem(${it.id})">${esc(t("remove"))}</button>
       </div>
     </div>
-  `).join("");
+  `;
+  }).join("");
   document.getElementById("cart-sum").textContent = priceTxt(cartTotal());
   document.getElementById("ask-sub").textContent =
-    `مجموع حسابك ${priceTxt(cartTotal())} · ${cartCount()} ${(cartCount() === 1 ? "صنف" : "أصناف")}. إذا تمام نحدد الطاولة.`;
+    lang === "en"
+      ? `Your total is ${priceTxt(cartTotal())} · ${cartCount()} ${cartCount() === 1 ? "item" : "items"}. If it looks right, we’ll take the table number.`
+      : `مجموع حسابك ${priceTxt(cartTotal())} · ${cartCount()} ${(cartCount() === 1 ? "صنف" : "أصناف")}. إذا تمام نحدد الطاولة.`;
 }
 
 function chgCartQty(id, n) {
@@ -361,7 +441,7 @@ function showCartStep(name) {
     document.getElementById("cart-step-" + s).style.display = s === name ? "" : "none";
   });
   document.getElementById("cart-head-title").textContent =
-    name === "done" ? "تم" : name === "table" ? "الطاولة" : "طلبك";
+    name === "done" ? t("done") : name === "table" ? t("table") : t("yourOrder");
 }
 
 function openCart() {
@@ -512,6 +592,4 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight") navFl(-1);
 });
 
-applyBrand();
-renderTabs();
-buildMenu();
+setLang(lang);

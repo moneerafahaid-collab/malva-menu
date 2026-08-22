@@ -1,19 +1,147 @@
 const CURRENCY = "ر.س";
 
+const I18N = {
+  ar: {
+    all: "الكل",
+    items: "صنف",
+    itemsMany: "أصناف",
+    itemOne: "صنف واحد",
+    prev: "السابق",
+    next: "التالي",
+    swipeClose: "اسحب للإغلاق",
+    ingredients: "المكوّنات",
+    addons: "إضافات",
+    notes: "ملاحظات",
+    notesPh: "مثال: بدون بصل، حار زيادة، تقطيع…",
+    addToOrder: "أضف للطلب",
+    yourOrder: "طلبك",
+    total: "مجموع الحساب",
+    emptyCart: "السلة فاضية.",
+    notePrefix: "ملاحظة:",
+    remove: "حذف",
+    askQ: "تمام كذا<br>يا طويل العمر؟",
+    askYes: "إي، تمام",
+    askEdit: "أرجع أعدّل",
+    tableQ: "كم رقم طاولتك؟",
+    tableSub: "عشان النادل يعرف يجيكم مباشرة.",
+    tablePh: "مثال: 7",
+    send: "أرسل الطلب",
+    doneEy: "الطلب وصل",
+    doneTitle: "تمام.",
+    doneSub: "أقل من دقيقة ويجيك النادل وياخذ الطلب من الطاولة",
+    close: "إغلاق",
+    done: "تم",
+    table: "الطاولة",
+    loading: "جاري التحميل…",
+    hint: "اسحب",
+    best: "الأفضل مبيعاً",
+    neu: "منتج جديد",
+    askReview: "راجع طلبك والمجموع، وإذا كله تمام نحدد الطاولة.",
+    currency: "ر.س",
+    cal: "cal"
+  },
+  en: {
+    all: "All",
+    items: "items",
+    itemsMany: "items",
+    itemOne: "1 item",
+    prev: "Prev",
+    next: "Next",
+    swipeClose: "Swipe to close",
+    ingredients: "Ingredients",
+    addons: "Add-ons",
+    notes: "Notes",
+    notesPh: "e.g. no onion, extra spicy…",
+    addToOrder: "Add to order",
+    yourOrder: "Your order",
+    total: "Total",
+    emptyCart: "Your cart is empty.",
+    notePrefix: "Note:",
+    remove: "Remove",
+    askQ: "Does this look<br>right?",
+    askYes: "Yes, send it",
+    askEdit: "Edit order",
+    tableQ: "What's your table number?",
+    tableSub: "So the waiter can come straight to you.",
+    tablePh: "e.g. 7",
+    send: "Send order",
+    doneEy: "Order received",
+    doneTitle: "Done.",
+    doneSub: "The waiter will collect your order from table",
+    close: "Close",
+    done: "Done",
+    table: "Table",
+    loading: "Loading…",
+    hint: "Scroll",
+    best: "Best seller",
+    neu: "New",
+    askReview: "Check your order and total, then we’ll take the table number.",
+    currency: "SAR",
+    cal: "cal"
+  }
+};
+
 const BRAND = {
   name: "ملفا",
+  nameEn: "Malva",
   sub: "بيتزا نابولي",
+  subEn: "Neapolitan Pizza",
   heroEy: "بيتزا · برجر · حلويات",
+  heroEyEn: "Pizza · Burgers · Desserts",
   heroEyAlt: "تعجن · تنضج · تقدّم",
+  heroEyAltEn: "Knead · Fire · Serve",
   heroTitleHtml: "نكهات تجمع بين<br><em>الأصالة</em> والابتكار",
+  heroTitleHtmlEn: "Flavors that blend<br><em>heritage</em> and innovation",
   heroWordDry: "",
   heroWordSauced: "تطلع من الفرن.",
   heroCta: "شاهد المنيو",
+  heroCtaEn: "View menu",
   phone: "tel:+",
   socialLabel: "",
   socialUrl: "#",
   orderNote: "جاهز تطلب؟ <strong>اسأل الكاشير</strong>",
-  atlasHref: "#"
+  atlasHref: "#",
+  footHtml: "ملفا<br>نكهات تجمع بين الأصالة والابتكار",
+  footHtmlEn: "Malva<br>Flavors that blend heritage and innovation"
+};
+
+const TAG_EN = {
+  "حليب": "Milk",
+  "قلوتين": "Gluten",
+  "بيض": "Eggs",
+  "مكسرات": "Nuts",
+  "الخردل": "Mustard",
+  "سمسم": "Sesame"
+};
+
+const ADDON_EN = {
+  "اضافة شريحة": "Extra patty"
+};
+
+const ITEM_EN = {
+  "لحم حاشي": { n: "Hashi Beef", p: "Hashi beef, onion jam, mozzarella, smoked BBQ, parmesan" },
+  "دجاج اللومي": { n: "Loomi Chicken", p: "Chicken, Hasawi loomi, mozzarella, parmesan, chili flakes, jalapeño" },
+  "بيبروني حبحر شقراء": { n: "Pepperoni Shaqra Chili", p: "Pepperoni, mozzarella, burrata, date molasses, Shaqra chili, dried thyme" },
+  "بيتزا ترافل": { n: "Truffle Pizza", p: "Truffle sauce, mozzarella, mushrooms" },
+  "بيتزا مارجريتا": { n: "Margherita", p: "Tomato sauce, mozzarella, basil" },
+  "بيتزا روكا": { n: "Rocca Pizza", p: "Kashkaval, mozzarella, arugula, feta, pine nuts, pomegranate molasses, thyme, parmesan" },
+  "برجر نابولي": { n: "Napoli Burger", p: "Two Black Angus patties on soft Napoli dough, cheese, creamy sauce, and pickles" },
+  "برجر نابولي دجاج": { n: "Napoli Chicken Burger", p: "Two smashed grilled chicken pieces, melted Monterey Jack, creamy sauce, fresh lettuce, on soft Napoli dough" },
+  "فيلي ستيك": { n: "Philly Steak", p: "Grilled striploin with fresh onion and melted Monterey Jack in airy Napoli bread, finished with smoked chipotle sauce" },
+  "بطاطس": { n: "Fries", p: "Crispy fries topped with grated parmesan" },
+  "سلطة مربى التوت": { n: "Berry Jam Salad", p: "Fresh kale and arugula salad with coriander, pomegranate, feta, toasted sesame, and berry jam" },
+  "كركديه": { n: "Hibiscus", p: "" },
+  "شاي مثلج بالخوخ": { n: "Peach Iced Tea", p: "" },
+  "لومي نيد": { n: "Loomi Need", p: "Refreshing Hasawi loomi drink with lemongrass, served iced" },
+  "كولا": { n: "Cola", p: "" },
+  "كولا زيرو": { n: "Cola Zero", p: "" },
+  "سبرايت": { n: "Sprite", p: "" },
+  "قهوة اليوم": { n: "Coffee of the Day", p: "" },
+  "تيراميسو بالبندق": { n: "Hazelnut Tiramisu", p: "Rich tiramisu layered with cream and coffee, topped with hazelnut cream" },
+  "كريم كراميل": { n: "Crème Caramel", p: "Silky Madagascar vanilla crème caramel" },
+  "مربى التوت": { n: "Berry Jam", p: "Balanced berry jam with a smooth texture and a clear, rich flavor." },
+  "العسل الحار": { n: "Hot Honey", p: "A balanced mix of honey and three chilies, sweet and spicy" },
+  "دبس التمر": { n: "Date Molasses", p: "Smooth, rich date molasses extracted from dates in their natural flavor." }
 };
 
 const CC = {
@@ -29,31 +157,45 @@ const CC = {
 const CAT_META = {
   "68e520249e80914fe586c736": {
     "title": "بيتزا",
-    "desc": "عجينة نابولي من الفرن."
+    "titleEn": "Pizza",
+    "desc": "عجينة نابولي من الفرن.",
+    "descEn": "Neapolitan dough from the oven."
   },
   "692bf006e1163f2c94ce2729": {
     "title": "برجر & ساندوتش",
-    "desc": "على عجينة النابولي."
+    "titleEn": "Burgers & Sandwiches",
+    "desc": "على عجينة النابولي.",
+    "descEn": "On Napoli dough."
   },
   "692bee61e1163f2c94ce2592": {
     "title": "أطباق جانبية",
-    "desc": "للمائدة."
+    "titleEn": "Sides",
+    "desc": "للمائدة.",
+    "descEn": "For the table."
   },
   "68e516609e80914fe586c48a": {
     "title": "مشروبات باردة",
-    "desc": "منعشة وباردة."
+    "titleEn": "Cold drinks",
+    "desc": "منعشة وباردة.",
+    "descEn": "Cold and refreshing."
   },
   "68e516609e80914fe586c489": {
     "title": "مشروبات ساخنة",
-    "desc": "من المشروبات الساخنة."
+    "titleEn": "Hot drinks",
+    "desc": "من المشروبات الساخنة.",
+    "descEn": "From the hot bar."
   },
   "68e516609e80914fe586c48b": {
     "title": "حلويات",
-    "desc": "بعد الأكل."
+    "titleEn": "Desserts",
+    "desc": "بعد الأكل.",
+    "descEn": "After the meal."
   },
   "6a20eb2e242634dae5bd29bf": {
     "title": "جارات ملفا",
-    "desc": "من منتجات ملفا."
+    "titleEn": "Malva jars",
+    "desc": "من منتجات ملفا.",
+    "descEn": "From Malva."
   }
 };
 
@@ -489,3 +631,14 @@ const FL = [
     "catName": "جارات ملفا"
   }
 ];
+
+FL.forEach((item) => {
+  const en = ITEM_EN[item.n];
+  if (en) {
+    item.nEn = en.n;
+    item.pEn = en.p;
+  }
+  (item.addons || []).forEach((a) => {
+    if (ADDON_EN[a.n]) a.nEn = ADDON_EN[a.n];
+  });
+});
